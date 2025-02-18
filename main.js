@@ -1,84 +1,73 @@
-// 필요한 html elements 다 가져오기
-let computerNumber = 0;
+let computerNum = 0;
 let playButton = document.getElementById("play-button");
-let resetButton = document.querySelector(".button-reset");
-let userInput = document.querySelector("#user-input");
-let resultAreaImg = document.querySelector(".main-img");
-let resultText = document.querySelector(".result-text");
-let chanceArea = document.getElementById("chance-area");
+let userInput = document.getElementById("user-input");
+let resultArea = document.getElementById("result-area");
+let resetButton = document.getElementById("reset-button");
+let chanceCount = document.getElementById("chance-count");
+let answerDisplay = document.getElementById("correct-answer");
+let chances = 3;
 let gameOver = false;
-let chances = 5; // 남은 기회
-let userValueList = []; // 유저가 입력한 숫자들 리스트
+let history = [];
 
-chanceArea.innerHTML = `남은 기회:${chances}`;
 playButton.addEventListener("click", play);
 resetButton.addEventListener("click", reset);
-userInput.addEventListener("focus", focusInput);
+userInput.addEventListener("focus", function() {
+    userInput.value = "";
+});
 
-function pickRandomNumber() {
-  // 랜덤숫자 뽑기
-
-  computerNumber = Math.floor(Math.random() * 100) + 1;
-  console.log("정답", computerNumber);
+function pickRandomNum() {
+    computerNum = Math.floor(Math.random() * 100) + 1;
+    answerDisplay.textContent = "❓"; // 정답 숨김
+    console.log("정답: ", computerNum);
 }
 
 function play() {
-  // 숫자 추측하기
-  const userValue = userInput.value;
-  if (userValue < 1 || userValue > 100) {
-    resultText.textContent = "1부터 100 사이의 숫자를 입력 해주세요";
+    let userValue = Number(userInput.value);
 
-    return;
-  }
+    if (userValue < 1 || userValue > 100) {
+        resultArea.textContent = "⚠️ 1~100 사이 숫자를 입력하세요!";
+        return;
+    }
+    if (history.includes(userValue)) {
+        resultArea.textContent = "🚫 이미 입력한 숫자입니다!";
+        return;
+    }
 
-  if (userValueList.includes(userValue)) {
-    resultText.textContent = "이미 입력한 숫자입니다. 다른 숫자를 입력해주세요";
+    chances--;
+    chanceCount.textContent = chances;
 
-    return;
-  }
+    if (userValue < computerNum) {
+        resultArea.textContent = "🔼 UP! 조금 더 높은 숫자를 입력해보세요!";
+    } else if (userValue > computerNum) {
+        resultArea.textContent = "🔽 DOWN! 조금 더 낮은 숫자를 입력하세요!";
+    } else {
+        resultArea.innerHTML = "🎉 정답입니다! 축하해요! 🎊";
+        answerDisplay.textContent = `🎯 ${computerNum}`;
+        gameOver = true;
+    }
 
-  chances--;
-  chanceArea.innerHTML = `남은 기회:${chances}`;
-  userValueList.push(userValue);
-  if (userValue < computerNumber) {
-    resultAreaImg.src =
-      "https://media0.giphy.com/media/3ov9jExd1Qbwecoqsg/200.gif";
-    resultText.textContent = "Up!";
-  } else if (userValue > computerNumber) {
-    resultAreaImg.src = "https://media.giphy.com/media/r2puuhrnjG7vy/giphy.gif";
-    resultText.textContent = "Down!";
-  } else {
-    resultAreaImg.src =
-      "https://media.tenor.com/images/0a81b89954678ebe228e15e35044f7a5/tenor.gif";
-    resultText.textContent = "정답!";
-    gameOver = true;
-  }
+    history.push(userValue);
 
-  if (chances == 0) {
-    gameOver = true;
-  }
+    if (chances < 1) {
+        gameOver = true;
+        resultArea.textContent = `💥 게임 오버! 정답: ${computerNum}`;
+        answerDisplay.textContent = `🎯 ${computerNum}`;
+    }
 
-  if (gameOver == true) {
-    playButton.disabled = true;
-  }
-}
-
-function focusInput() {
-  userInput.value = "";
+    if (gameOver) {
+        playButton.disabled = true;
+    }
 }
 
 function reset() {
-  //리셋
-  pickRandomNumber();
-  userInput.value = "";
-  resultAreaImg.src =
-    "https://media1.giphy.com/media/9DinPR8bzFsmf74j9W/giphy.gif";
-  resultText.textContent = "죽기 싫다면 맞춰라";
-  gameOver = false;
-  playButton.disabled = false;
-  chances = 5;
-  chanceArea.innerHTML = `남은 기회:${chances}`;
-  userValueList = [];
+    userInput.value = "";
+    chances = 3;
+    gameOver = false;
+    history = [];
+    playButton.disabled = false;
+    chanceCount.textContent = chances;
+    resultArea.textContent = "게임을 다시 시작했습니다!";
+    pickRandomNum();
 }
 
-pickRandomNumber();
+pickRandomNum();
